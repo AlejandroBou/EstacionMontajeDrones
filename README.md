@@ -88,7 +88,7 @@ java EstacionMontajeDrones
 
 ### Problema de Interbloqueo
 
-Si todos los operarios toman su herramienta izquierda al mismo tiempo, quedarán esperando indefinidamente por la derecha → **DEADLOCK** 💀
+Si todos los operarios toman su herramienta izquierda al mismo tiempo, quedarán esperando indefinidamente por la derecha → **DEADLOCK**
 
 ### Estrategia Implementada
 
