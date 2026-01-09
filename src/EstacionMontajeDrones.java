@@ -1,13 +1,27 @@
 import java.util.concurrent.Semaphore;
 
 /**
- * Solución al problema de la Estación de Montaje de Drones
- * Simula 5 operarios que compiten por herramientas compartidas (soldadores y destornilladores)
- * Previene interbloqueo mediante orden de adquisición de recursos
+ * Clase principal que simula la Estación de Montaje de Drones.
+ * <p>
+ * Lanza múltiples hilos (operarios) que compiten por recursos compartidos
+ * (soldadores y destornilladores), aplicando técnicas de sincronización
+ * para evitar interbloqueos (deadlock).
+ * </p>
  */
 public class EstacionMontajeDrones {
+
+    /** Número total de operarios en la estación */
     private static final int NUM_OPERARIOS = 5;
 
+    /**
+     * Método principal del programa.
+     * <p>
+     * Inicializa la mesa de montaje, crea los hilos de los operarios
+     * y ejecuta la simulación durante 30 segundos.
+     * </p>
+     *
+     * @param args argumentos de línea de comandos (no utilizados)
+     */
     public static void main(String[] args) {
         MesaMontaje mesa = new MesaMontaje(NUM_OPERARIOS);
 
@@ -22,11 +36,13 @@ public class EstacionMontajeDrones {
         try {
             Thread.sleep(30000);
             System.out.println("\n=== Finalizando jornada de trabajo ===\n");
+
+            // Interrumpir a todos los operarios
             for (Thread operario : operarios) {
                 operario.interrupt();
             }
 
-            // Esperar a que todos terminen
+            // Esperar a que todos finalicen
             for (Thread operario : operarios) {
                 operario.join();
             }
@@ -37,19 +53,40 @@ public class EstacionMontajeDrones {
 }
 
 /**
- * Clase que representa a un operario como un hilo
- * Cada operario necesita un soldador (izquierda) y un destornillador (derecha)
+ * Representa a un operario de la estación de montaje.
+ * <p>
+ * Cada operario es un hilo que alterna entre preparar piezas,
+ * solicitar herramientas, ensamblar drones y liberar recursos.
+ * </p>
  */
 class Operario implements Runnable {
+
+    /** Identificador único del operario */
     private final int id;
+
+    /** Referencia compartida a la mesa de montaje */
     private final MesaMontaje mesa;
+
+    /** Contador de drones ensamblados por el operario */
     private int dronesEnsamblados = 0;
 
+    /**
+     * Constructor del operario.
+     *
+     * @param id   identificador del operario
+     * @param mesa mesa de montaje compartida
+     */
     public Operario(int id, MesaMontaje mesa) {
         this.id = id;
         this.mesa = mesa;
     }
 
+    /**
+     * Ciclo principal de ejecución del hilo.
+     * <p>
+     * El operario trabaja continuamente hasta que el hilo es interrumpido.
+     * </p>
+     */
     @Override
     public void run() {
         try {
@@ -60,45 +97,63 @@ class Operario implements Runnable {
                 liberarHerramientas();
             }
         } catch (InterruptedException e) {
-            System.out.println("[Operario " + id + "] - Finalizó su turno. Total de drones ensamblados: " + dronesEnsamblados);
+            System.out.println("[Operario " + id + "] - Finalizó su turno. Total de drones ensamblados: "
+                    + dronesEnsamblados);
             Thread.currentThread().interrupt();
         }
     }
 
     /**
-     * Estado 1: PREPARANDO
-     * El operario organiza sus piezas
+     * Estado PREPARANDO.
+     * <p>
+     * Simula el tiempo que el operario tarda en organizar las piezas
+     * antes de comenzar el ensamblaje.
+     * </p>
+     *
+     * @throws InterruptedException si el hilo es interrumpido
      */
     private void preparar() throws InterruptedException {
         System.out.println("[Operario " + id + "] - Preparando piezas...");
-        Thread.sleep((long) (Math.random() * 1500 + 500)); // 500ms a 2000ms
+        Thread.sleep((long) (Math.random() * 1500 + 500));
     }
 
     /**
-     * Estado 2: SOLICITANDO HERRAMIENTAS
-     * El operario intenta adquirir ambas herramientas
+     * Estado SOLICITANDO HERRAMIENTAS.
+     * <p>
+     * El operario solicita a la mesa de montaje las herramientas necesarias
+     * para trabajar (soldador y destornillador).
+     * </p>
+     *
+     * @throws InterruptedException si el hilo es interrumpido
      */
     private void solicitarHerramientas() throws InterruptedException {
         System.out.println("[Operario " + id + "] - Intentando coger herramientas...");
         mesa.tomarHerramientas(id);
-        System.out.println("[Operario " + id + "] - Herramientas adquiridas (Soldador " +
-                id + " y Destornillador " + ((id + 1) % 5) + ")");
+        System.out.println("[Operario " + id + "] - Herramientas adquiridas (Soldador "
+                + id + " y Destornillador " + ((id + 1) % 5) + ")");
     }
 
     /**
-     * Estado 3: ENSAMBLANDO
-     * El operario trabaja con ambas herramientas
+     * Estado ENSAMBLANDO.
+     * <p>
+     * El operario utiliza ambas herramientas para ensamblar un dron.
+     * </p>
+     *
+     * @throws InterruptedException si el hilo es interrumpido
      */
     private void ensamblar() throws InterruptedException {
         dronesEnsamblados++;
         System.out.println("[Operario " + id + "] - Ensamblando dron nº " + dronesEnsamblados + "...");
-        Thread.sleep((long) (Math.random() * 2000 + 1000)); // 1000ms a 3000ms
+        Thread.sleep((long) (Math.random() * 2000 + 1000));
         System.out.println("[Operario " + id + "] - Dron nº " + dronesEnsamblados + " completado");
     }
 
     /**
-     * Estado 4: LIBERANDO
-     * El operario suelta las herramientas en orden inverso
+     * Estado LIBERANDO.
+     * <p>
+     * El operario devuelve las herramientas a la mesa de montaje,
+     * permitiendo que otros operarios puedan utilizarlas.
+     * </p>
      */
     private void liberarHerramientas() {
         System.out.println("[Operario " + id + "] - Finalizado. Soltando herramientas.");
@@ -107,64 +162,85 @@ class Operario implements Runnable {
 }
 
 /**
- * Clase que gestiona la mesa circular con las herramientas compartidas
- * Implementa la sincronización mediante semáforos
+ * Clase que gestiona la mesa de montaje circular.
+ * <p>
+ * Controla el acceso concurrente a las herramientas mediante semáforos
+ * e implementa una estrategia para evitar el interbloqueo.
+ * </p>
  */
 class MesaMontaje {
-    private final int numPuestos;
-    private final Semaphore[] soldadores;
-    private final Semaphore[] destornilladores;
-    private final Semaphore supervisor; // Previene interbloqueo
 
+    /** Número de puestos/operarios */
+    private final int numPuestos;
+
+    /** Semáforos que representan los soldadores */
+    private final Semaphore[] soldadores;
+
+    /** Semáforos que representan los destornilladores */
+    private final Semaphore[] destornilladores;
+
+    /**
+     * Semáforo supervisor.
+     * <p>
+     * Limita el número de operarios que pueden intentar trabajar
+     * simultáneamente para evitar el deadlock.
+     * </p>
+     */
+    private final Semaphore supervisor;
+
+    /**
+     * Constructor de la mesa de montaje.
+     *
+     * @param numPuestos número total de puestos de trabajo
+     */
     public MesaMontaje(int numPuestos) {
         this.numPuestos = numPuestos;
-
-        // Crear un semáforo por cada herramienta
         this.soldadores = new Semaphore[numPuestos];
         this.destornilladores = new Semaphore[numPuestos];
 
         for (int i = 0; i < numPuestos; i++) {
-            soldadores[i] = new Semaphore(1); // 1 permiso = solo un operario puede usar la herramienta
+            soldadores[i] = new Semaphore(1);
             destornilladores[i] = new Semaphore(1);
         }
 
-        // Semáforo supervisor: solo permite que 4 operarios trabajen simultáneamente
-        // Esto rompe la espera circular y previene el deadlock
+        // Permite que solo N-1 operarios intenten trabajar a la vez
         this.supervisor = new Semaphore(numPuestos - 1);
     }
 
     /**
-     * Método para adquirir ambas herramientas
-     * Implementa estrategia de prevención de deadlock:
-     * - El último operario toma las herramientas en orden inverso
+     * Permite a un operario adquirir las dos herramientas necesarias.
+     * <p>
+     * Aplica una estrategia anti-deadlock:
+     * el último operario adquiere los recursos en orden inverso.
+     * </p>
+     *
+     * @param idOperario identificador del operario
+     * @throws InterruptedException si el hilo es interrumpido
      */
     public void tomarHerramientas(int idOperario) throws InterruptedException {
-        // El supervisor controla cuántos operarios pueden intentar trabajar
         supervisor.acquire();
 
         int soldadorIzq = idOperario;
         int destornilladorDer = (idOperario + 1) % numPuestos;
 
-        // Estrategia anti-deadlock: el último operario invierte el orden
         if (idOperario == numPuestos - 1) {
-            // Operario 4 toma primero el destornillador, luego el soldador
             destornilladores[destornilladorDer].acquire();
             soldadores[soldadorIzq].acquire();
         } else {
-            // Resto de operarios: primero soldador, luego destornillador
             soldadores[soldadorIzq].acquire();
             destornilladores[destornilladorDer].acquire();
         }
     }
 
     /**
-     * Método para liberar ambas herramientas en orden inverso
+     * Libera las herramientas utilizadas por el operario.
+     *
+     * @param idOperario identificador del operario
      */
     public void soltarHerramientas(int idOperario) {
         int soldadorIzq = idOperario;
         int destornilladorDer = (idOperario + 1) % numPuestos;
 
-        // Liberar en orden inverso al que se adquirieron
         if (idOperario == numPuestos - 1) {
             soldadores[soldadorIzq].release();
             destornilladores[destornilladorDer].release();
@@ -173,7 +249,6 @@ class MesaMontaje {
             soldadores[soldadorIzq].release();
         }
 
-        // Liberar el supervisor
         supervisor.release();
     }
 }
