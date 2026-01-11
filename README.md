@@ -138,17 +138,6 @@ if (idOperario == numPuestos - 1) {
 └── README.md                   # Este archivo
 ```
 
-## Autor
-
-**Práctica de Recuperación - Gestión de Procesos e Hilos**  
-Programación de Servicios y Procesos
-
-## Licencia
-
-Este proyecto es material educativo de libre uso.
-
----
-
 ### Notas Adicionales
 
 - La simulación se ejecuta durante **30 segundos**
