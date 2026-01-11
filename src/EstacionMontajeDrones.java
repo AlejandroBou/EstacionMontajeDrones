@@ -20,7 +20,6 @@ public class EstacionMontajeDrones {
      * y ejecuta la simulación durante 30 segundos.
      * </p>
      *
-     * @param args argumentos de línea de comandos (no utilizados)
      */
     public static void main(String[] args) {
         MesaMontaje mesa = new MesaMontaje(NUM_OPERARIOS);
@@ -248,7 +247,6 @@ class MesaMontaje {
             destornilladores[destornilladorDer].release();
             soldadores[soldadorIzq].release();
         }
-
         supervisor.release();
     }
 }
